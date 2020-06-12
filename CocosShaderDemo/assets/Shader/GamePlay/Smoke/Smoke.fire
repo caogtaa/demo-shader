@@ -168,7 +168,7 @@
       "array": [
         0,
         0,
-        368.060791015625,
+        483.92146373864796,
         0,
         0,
         0,
@@ -224,6 +224,7 @@
       "height": 1
     },
     "_renderStages": 1,
+    "_alignWithScreen": true,
     "_id": "0dB6+Qx5JKx6AT07DCZNeD"
   },
   {

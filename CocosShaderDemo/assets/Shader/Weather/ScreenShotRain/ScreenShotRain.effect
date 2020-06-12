@@ -28,13 +28,25 @@ CCProgram vs %{
   in vec2 a_uv0;
   out vec2 v_uv0;
 
-  void main () {
+  void main() {
     vec4 pos = vec4(a_position, 1);
+ 
     pos = cc_matViewProj * pos;
     v_uv0 = a_uv0;
+    v_uv0.y = 1.0-v_uv0.y;    // uv坐标从左上角开始，Y坐标和顶点相反 （ccc v2.2.2）
+ 
     v_color = a_color;
+ 
     gl_Position = pos;
   }
+
+  // void main () {
+  //   vec4 pos = vec4(a_position, 1);
+  //   pos = cc_matViewProj * pos;
+  //   v_uv0 = a_uv0;
+  //   v_color = a_color;
+  //   gl_Position = pos;
+  // }
 }%
 
 // by lgabriel13
@@ -60,38 +72,56 @@ CCProgram fs %{
   vec2 GetDrops(vec2 uv, float t, float speedMultiplier) 
   {                    
       vec2 gridSize = vec2 (10.0, 4.0);
+
+      // get a random offset for the size
       float sizeOffset = texture (drop, uv * 0.1).x;
-      float speed = ((Hash (floor (uv * gridSize).x) + 1.0) * 0.5)  * .2;     
+
+      // Random speed 0->0.2 
+      float speed = ((Hash (floor (uv * gridSize).x) + 1.0) * 0.5)  * .2;   
+
+      // Move the grid down in time  
       uv.y -= speed * t * speedMultiplier;
       
+      // apply the offset to the domain
       vec2 st = fract (uv * gridSize + vec2 (sizeOffset * 0.5, sizeOffset * 0.1));
-      st -= 0.5; 
-      st *= 2.0;  
+      st -= 0.5;    // -0.5-> 0.5
+      st *= 2.0;    // -1.0-> 1.0
       
-      //Draw a circle
+      // Draw a circle
       vec2 p = (st)/gridSize;       
       float mainDropDist = smoothstep (0.03, 0.02, length (p));
-          
+      
+      // Modify 2.5 if you want a bigger/smaller offset
       return ((p * mainDropDist * 3.5));
   }
 
   void main()
   {
+      // UV [-1,1]
       vec2 uv = v_uv0.xy/resolution;
       uv *= 2.0 - 1.0;
       uv.x *= resolution.x/resolution.y;
       
+      // 3 layers of drops
       vec2 drops = GetDrops (uv, time + 21.5, .75);    
       drops += GetDrops (uv * 2.0, time + 251.5, 1.75) * .5;
       drops += GetDrops (uv * 4.0, time + 32.5, 2.0) * .25;
+
+      // vec2 offset = drops - v_uv0/resolution;
       
+      // Sample with the offset caused by drops
       gl_FragColor = texture (texture, v_uv0/resolution + drops);
+      gl_FragColor.a = smoothstep(0.0, 0.01, length(drops));
+
+      // debug
+      // gl_FragColor = vec4(drops, 0.0, 1.0);
       
-      vec2 uv2 = (v_uv0/resolution) - .5;            
+      // Simple VIGNETTE
+      //vec2 uv2 = (v_uv0/resolution) - .5;            
       
-      float dist = length (uv2) * 1.85;
-      float vignette = 1.0/(dist*dist + 1.0);
+      //float dist = length (uv2) * 1.85;
+      // float vignette = 1.0/(dist*dist + 1.0);
       
-      gl_FragColor *= vignette;
+      //gl_FragColor *= vignette;
   }
 }%

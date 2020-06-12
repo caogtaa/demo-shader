@@ -3,10 +3,10 @@ import CustomAssembler from '../../../Script/CustomAssembler'
 
 @ccclass
 export default class RainRenderComponent extends cc.RenderComponent {
-    @property({
-        type: cc.Texture2D
-    })
-    maskTexture: cc.Texture2D = null;
+    // @property({
+    //     type: cc.Texture2D
+    // })
+    // maskTexture: cc.Texture2D = null;
 
     _texture = null;
 
